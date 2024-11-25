@@ -34,7 +34,9 @@ public class Main
             {
                 case 'w':
                 case 'W':
-                    System.out.println("Running word game");
+                    WordGame wordGame;
+                    wordGame = new WordGame();
+                    wordGame.main(args);
                     break;
 
                 case 'n':

@@ -2,14 +2,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.*;
 import java.util.stream.Stream;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Random;
-import java.util.Scanner;
 
 /**
  * WordGame Class
@@ -19,17 +13,20 @@ import java.util.Scanner;
  */
 public class WordGame
 {
-    private final static int INCORRECT_INITIAL  = 0;
-    private final static int SCORE_INITIAL      = 0;
-    private final static int FIRST              = 0;
-    private final static int SECOND             = 1;
-    private final static int THIRD              = 2;
-    private final static int NUM_OF_QUESTIONS   = 10;
+    private final static int NUM_OF_FACTS           = 3;
+    private final static int GAMES_PLAYED_INITIAL   = 0;
+    private final static int INCORRECT_INITIAL      = 0;
+    private final static int SCORE_INITIAL          = 0;
+    private final static int FIRST                  = 0;
+    private final static int SECOND                 = 1;
+    private final static int THIRD                  = 2;
+    private final static int NUM_OF_QUESTIONS       = 10;
     private final static List<Country> countries;
 
     private static int correctFirstAttempt;
     private static int correctSecondAttempt;
     private static int incorrect;
+    private static int gamesPlayed;
 
     static
     {
@@ -37,6 +34,7 @@ public class WordGame
         correctFirstAttempt = SCORE_INITIAL;
         correctSecondAttempt = SCORE_INITIAL;
         incorrect = INCORRECT_INITIAL;
+        gamesPlayed = GAMES_PLAYED_INITIAL;
     }
 
     /**
@@ -51,33 +49,67 @@ public class WordGame
         final World world;
         final List<String> countryNames;
         final Scanner scan;
+        String playAgain;
 
         scan = new Scanner(System.in);
         countryNames = new ArrayList<>();
         countryMap = new HashMap<>();
         random = new Random();
-
-        readCountryFiles();
-        countries.forEach(c -> countryMap.put(c.getName(), c));
-
         world = new World(countryMap);
 
+        readCountryFiles();
+
+        countries.forEach(country -> {
+            System.out.println(country.getName());
+            System.out.println(country.getCapitalCityName());
+            System.out.println(Arrays.toString(country.getFacts()));
+            System.out.println("\n");
+        });
+        countries.forEach(c -> countryMap.put(c.getName(), c));
 
         world.getCountryMap().forEach((n, c) ->
         {
             countryNames.add(n);
         });
-        // have an array of country names (maybe get from world)
-        // generate random int, get country name using int
-        // access country from world using country name as key
 
+        do
+        {
+            play(countryNames, world, random, scan);
+
+            System.out.println("\nWould you like to play again?");
+            playAgain = scan.nextLine().trim();
+
+            while(!playAgain.equalsIgnoreCase("Yes") && !playAgain.equalsIgnoreCase("No"))
+            {
+                System.out.println("Invalid input. Please enter 'Yes' or 'No': ");
+                playAgain = scan.nextLine().trim();
+            }
+
+        } while (playAgain.equalsIgnoreCase("Yes"));
+
+    }
+
+    /*
+     * Play the word game
+     *
+     * @param countryNames
+     * @param world
+     * @param random
+     * @param scan
+     */
+    private static void play(final List<String> countryNames,
+                             final World world,
+                             final Random random,
+                             final Scanner scan)
+    {
         for(int i = 0; i < NUM_OF_QUESTIONS; i++)
         {
-            Country country;
-            String countryName;
-            String[] facts;
-            String chosenFact;
-            String input;
+            final String answer;
+            final Country country;
+            final String countryName;
+            final String[] facts;
+            final String chosenFact;
+            final String input;
 
             countryName = countryNames.get(random.nextInt(countryNames.size()));
             country = world.getCountryMap().get(countryName);
@@ -88,70 +120,112 @@ public class WordGame
             switch(random.nextInt(3))
             {
                 case FIRST:
+
                     System.out.println("\n" + country.getCapitalCityName() +
-                                        "\nWhat Country is this the capital of?: ");
+                            "\nWhat Country is this the capital of?: ");
+
                     input = scan.nextLine();
+                    answer = country.getName().replaceAll("[^\\p{ASCII}]", "");
 
-
-                    // Get user input
-                    // Evaluate user input
-                        // Correct ? add Score : dont add score;
+                    guessQuestion(scan, answer, input);
 
                     break;
 
                 case SECOND:
+
                     System.out.println("\n" + country.getName() +
-                                        "\nWhat is the capital of this country?: ");
+                            "\nWhat is the capital of this country?: ");
+
+                    input = scan.nextLine();
+                    answer = country.getCapitalCityName().replaceAll("[^\\p{ASCII}]", "");
+
+                    guessQuestion(scan, answer, input);
+
                     break;
 
                 case THIRD:
+
                     System.out.println("\n" + chosenFact +
-                                        "\nWhat country is being described?: ");
+                            "\nWhat country is being described?: ");
+
+                    input = scan.nextLine();
+                    answer = country.getName().replaceAll("[^\\p{ASCII}]", "");
+
+                    guessQuestion(scan, answer, input);
+
                     break;
 
                 default:
                     System.out.println("Could not get Question");
             }
         }
+
+        gamesPlayed++;
+        System.out.println("\n" + gamesPlayed + " word game played");
+        System.out.println(correctFirstAttempt + " correct answers on the first attempt");
+        System.out.println(correctSecondAttempt + " correct answers on the second attempt");
+        System.out.println(incorrect + " incorrect answers on two attempts each");
     }
 
-    private static void validateInput(final String input)
+    /*
+     * Check the guesses of a question
+     *
+     * @param scan scan
+     * @param answer answer
+     * @param input input
+     */
+    private static void guessQuestion(final Scanner scan, final String answer, String input)
     {
-        if(input == null || input.isBlank())
+        if(evaluateAnswer(input, answer))
         {
-            throw new IllegalArgumentException("Answer cannot be null or blank");
-        }
-    }
-
-    private static void evaluateCountryAnswer(final String input, final Country country)
-    {
-        validateInput(input);
-
-        if(input.equals(country.getName()))
-        {
-            System.out.println("CORRECT");
-            score++;
+            correctFirstAttempt++;
         }
         else
         {
-            if(guess == 2)
+            System.out.println("Try again: ");
+            input = scan.nextLine();
+            if(evaluateAnswer(input, answer))
             {
-                System.out.println("INCORRECT");
-                guess = 1;
+                correctSecondAttempt++;
             }
             else
             {
-                score++;
-
+                incorrect++;
+                System.out.println("The correct answer was " + answer);
             }
         }
     }
 
+    /*
+     * Evaluate an answer
+     *
+     * @param input input
+     * @param correctAnswer correctAnswer
+     * @return true if input is equal to answer
+     */
+    private static boolean evaluateAnswer(final String input, final String correctAnswer)
+    {
+        validateInput(input);
+
+        if(input.equalsIgnoreCase(correctAnswer))
+        {
+            System.out.println("CORRECT");
+            return true;
+        }
+        else
+        {
+            System.out.println("INCORRECT");
+            return false;
+        }
+    }
+
+    /*
+     * Read all the country files
+     */
     private static void readCountryFiles()
     {
         final List<Path> paths;
         final Path resourcesPath;
-
 
         resourcesPath = Paths.get("src", "resources");
 
@@ -161,7 +235,7 @@ public class WordGame
                     .filter(p -> p.toString().endsWith(".txt"))
                     .toList();
 
-            for(Path path : paths)
+            for(final Path path : paths)
             {
                 final List<String> pathLines;
 
@@ -175,6 +249,11 @@ public class WordGame
         }
     }
 
+    /*
+     * Parse a country file
+     *
+     * @param pathLines pathLines
+     */
     private static void parseCountryFile(final List<String> pathLines)
     {
         final List<String> tempFacts;
@@ -191,19 +270,40 @@ public class WordGame
             {
                 if(line != null && !line.isBlank())
                 {
-                    if(line.contains(":"))
-                    {
-                        final String[] parts;
 
+                    if(tempFacts.size() == NUM_OF_FACTS)
+                    {
                         if(country != null && capital != null)
                         {
                             addCountry(country, capital, tempFacts);
                         }
 
-                        parts = line.split(":");
-                        country = parts[FIRST];
-                        capital = parts[SECOND];
+                        country = null;
+                        capital = null;
+
                         tempFacts.clear();
+                    }
+
+
+                    if(line.contains(":") && country == null)
+                    {
+                        final String[] parts;
+
+                        parts = line.split(":");
+
+                        if(parts[FIRST].contains(","))
+                        {
+                            final String[] nameParts;
+
+                            nameParts = parts[FIRST].split(", ");
+                            country  = nameParts[SECOND] + nameParts[FIRST];
+                        }
+                        else
+                        {
+                            country = parts[FIRST];
+                        }
+
+                        capital = parts[SECOND];
                     }
                     else
                     {
@@ -211,16 +311,19 @@ public class WordGame
                     }
                 }
             }
-
-            if(country != null && capital != null)
-            {
-                addCountry(country, capital, tempFacts);
-            }
-
         }
     }
 
-    private static void addCountry(final String country, final String capital, final List<String> tempFacts)
+    /*
+     * Adds a country to the countries list
+     *
+     * @param country country
+     * @param capital capital
+     * @param tempFacts tempFacts
+     */
+    private static void addCountry(final String country,
+                                   final String capital,
+                                   final List<String> tempFacts)
     {
         if(country != null && capital != null)
         {
@@ -228,6 +331,20 @@ public class WordGame
 
             facts = tempFacts.toArray(new String[0]);
             countries.add(new Country(country, capital, facts));
+        }
+    }
+
+    /*
+     * validateInput
+     *
+     * @param input input
+     * @throws IllegalArgumentException if input is null or blank
+     */
+    private static void validateInput(final String input)
+    {
+        if(input == null || input.isBlank())
+        {
+            throw new IllegalArgumentException("Input cannot be null or blank");
         }
     }
 
