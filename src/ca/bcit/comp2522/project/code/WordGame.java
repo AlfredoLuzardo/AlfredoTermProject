@@ -59,12 +59,6 @@ public class WordGame
 
         readCountryFiles();
 
-        countries.forEach(country -> {
-            System.out.println(country.getName());
-            System.out.println(country.getCapitalCityName());
-            System.out.println(Arrays.toString(country.getFacts()));
-            System.out.println("\n");
-        });
         countries.forEach(c -> countryMap.put(c.getName(), c));
 
         world.getCountryMap().forEach((n, c) ->
