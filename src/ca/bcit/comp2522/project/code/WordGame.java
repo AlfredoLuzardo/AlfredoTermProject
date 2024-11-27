@@ -5,6 +5,9 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Stream;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
 /**
  * WordGame Class
  *
@@ -13,15 +16,16 @@ import java.util.stream.Stream;
  */
 public class WordGame
 {
-    private final static int NUM_OF_FACTS           = 3;
-    private final static int GAMES_PLAYED_INITIAL   = 0;
-    private final static int INCORRECT_INITIAL      = 0;
-    private final static int SCORE_INITIAL          = 0;
-    private final static int FIRST                  = 0;
-    private final static int SECOND                 = 1;
-    private final static int THIRD                  = 2;
-    private final static int NUM_OF_QUESTIONS       = 10;
-    private final static List<Country> countries;
+    private static final int NUM_OF_FACTS           = 3;
+    private static final int GAMES_PLAYED_INITIAL   = 0;
+    private static final int INCORRECT_INITIAL      = 0;
+    private static final int SCORE_INITIAL          = 0;
+    private static final int FIRST                  = 0;
+    private static final int SECOND                 = 1;
+    private static final int THIRD                  = 2;
+    private static final int NUM_OF_QUESTIONS       = 10;
+    private static final String SCORE_PATH          = "score.txt";
+    private static final List<Country> countries;
 
     private static int correctFirstAttempt;
     private static int correctSecondAttempt;
@@ -40,35 +44,39 @@ public class WordGame
     /**
      * Main method
      *
-     * @param args args
      */
-    public static void main(final String[] args)
+    public void play()
+            throws IOException
     {
-        final Map<String, Country> countryMap;
-        final Random random;
-        final World world;
-        final List<String> countryNames;
         final Scanner scan;
+        final Random random;
+        final Map<String, Country> countryMap;
+        final List<String> countryNames;
+        final World world;
+        final Score score;
+        final LocalDateTime currentTime;
+        final String[] dateAndTime;
+        final Score currentHighScore;
+
         String playAgain;
 
-        scan = new Scanner(System.in);
-        countryNames = new ArrayList<>();
-        countryMap = new HashMap<>();
-        random = new Random();
-        world = new World(countryMap);
+        scan                = new Scanner(System.in);
+        random              = new Random();
+        countryNames        = new ArrayList<>();
+        countryMap          = new HashMap<>();
+        world               = new World(countryMap);
 
-        readCountryFiles();
+
+        currentHighScore    = Score.getHighestScore();
+
+                readCountryFiles();
 
         countries.forEach(c -> countryMap.put(c.getName(), c));
-
-        world.getCountryMap().forEach((n, c) ->
-        {
-            countryNames.add(n);
-        });
+        world.getCountryMap().forEach((n, c) -> countryNames.add(n));
 
         do
         {
-            play(countryNames, world, random, scan);
+            playRound(countryNames, world, random, scan);
 
             System.out.println("\nWould you like to play again?");
             playAgain = scan.nextLine().trim();
@@ -81,6 +89,43 @@ public class WordGame
 
         } while (playAgain.equalsIgnoreCase("Yes"));
 
+        currentTime = LocalDateTime.now();
+        score = new Score(currentTime, gamesPlayed, correctFirstAttempt, correctSecondAttempt, incorrect);
+
+        if(Score.isHighScore(score))
+        {
+
+            System.out.printf("""
+                            CONGRATULATIONS!
+                            You are the new high score with an average of %.2f points per game;
+                            """,
+                    score.getAverageScore());
+
+            if(currentHighScore != null)
+            {
+                dateAndTime = Score.formattedDateTime(currentHighScore.getDateTimePlayed()).split(" ");
+
+                System.out.printf("the previous record was %.2f points per game on %s at %s",
+                        currentHighScore.getAverageScore(),
+                        dateAndTime[FIRST],
+                        dateAndTime[SECOND]);
+            }
+
+        }
+        else
+        {
+            if(currentHighScore != null)
+            {
+                dateAndTime = Score.formattedDateTime(currentHighScore.getDateTimePlayed()).split(" ");
+
+                System.out.printf("You did not beat the high score of %.2f points per game from %s at %s",
+                        currentHighScore.getAverageScore(),
+                        dateAndTime[FIRST],
+                        dateAndTime[SECOND]);
+            }
+        }
+
+        Score.appendScoreToFile(score, SCORE_PATH);
     }
 
     /*
@@ -91,7 +136,7 @@ public class WordGame
      * @param random
      * @param scan
      */
-    private static void play(final List<String> countryNames,
+    private static void playRound(final List<String> countryNames,
                              final World world,
                              final Random random,
                              final Scanner scan)
@@ -254,8 +299,8 @@ public class WordGame
         String country;
         String capital;
 
-        country = null;
-        capital = null;
+        country     = null;
+        capital     = null;
         tempFacts   = new ArrayList<>();
 
         if(!pathLines.isEmpty())
@@ -264,7 +309,6 @@ public class WordGame
             {
                 if(line != null && !line.isBlank())
                 {
-
                     if(tempFacts.size() == NUM_OF_FACTS)
                     {
                         if(country != null && capital != null)
@@ -311,9 +355,9 @@ public class WordGame
     /*
      * Adds a country to the countries list
      *
-     * @param country country
-     * @param capital capital
-     * @param tempFacts tempFacts
+     * @param country is the country
+     * @param capital is the capital
+     * @param tempFacts is tempFacts
      */
     private static void addCountry(final String country,
                                    final String capital,
@@ -331,7 +375,7 @@ public class WordGame
     /*
      * validateInput
      *
-     * @param input input
+     * @param input is the input
      * @throws IllegalArgumentException if input is null or blank
      */
     private static void validateInput(final String input)

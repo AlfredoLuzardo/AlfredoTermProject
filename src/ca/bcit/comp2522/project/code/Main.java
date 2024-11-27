@@ -1,3 +1,6 @@
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -36,7 +39,15 @@ public class Main
                 case 'W':
                     WordGame wordGame;
                     wordGame = new WordGame();
-                    wordGame.main(args);
+                    try
+                    {
+                        wordGame.play();
+                    }
+                    catch(final IOException e)
+                    {
+                        e.printStackTrace();
+                    }
+
                     break;
 
                 case 'n':
@@ -59,5 +70,5 @@ public class Main
             }
         }
         while (choice != 'q' && choice != 'Q');
-    }
+     }
 }
