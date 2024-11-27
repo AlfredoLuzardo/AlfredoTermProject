@@ -112,18 +112,16 @@ public class WordGame
             }
 
         }
-        else
+        else if(currentHighScore != null)
         {
-            if(currentHighScore != null)
-            {
-                dateAndTime = Score.formattedDateTime(currentHighScore.getDateTimePlayed()).split(" ");
+            dateAndTime = Score.formattedDateTime(currentHighScore.getDateTimePlayed()).split(" ");
 
-                System.out.printf("You did not beat the high score of %.2f points per game from %s at %s",
-                        currentHighScore.getAverageScore(),
-                        dateAndTime[FIRST],
-                        dateAndTime[SECOND]);
-            }
+            System.out.printf("You did not beat the high score of %.2f points per game from %s at %s",
+                    currentHighScore.getAverageScore(),
+                    dateAndTime[FIRST],
+                    dateAndTime[SECOND]);
         }
+
 
         Score.appendScoreToFile(score, SCORE_PATH);
     }

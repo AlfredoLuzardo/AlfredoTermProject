@@ -24,8 +24,6 @@ public class NumberGameGui extends Application
         grid.setHgap(10);
         grid.setVgap(10);
 
-
-
         for(int i = 0; i < 4; i++)
         {
             for(int j = 0; j < 4; j++)

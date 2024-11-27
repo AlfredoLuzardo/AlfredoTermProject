@@ -1,138 +1,147 @@
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
-import java.util.Scanner;
 
-public class NumberGame extends Game
+/**
+ *
+ */
+public class NumberGame
 {
-    private static final int ELEM_INITIAL = 0;
     private static final int ROWS = 4;
     private static final int COLS = 5;
+    private static final int INITIAL = 0;
+    private static final int TOTAL_NUMBERS = 20;
 
-    private static int[][] board;
+    private final int[][] board;
+    private final Random rand;
+    private int currentNumber;
+    private int numbersPlaced;
 
-    public static void main(String[] args)
+    public NumberGame()
     {
-        final Scanner scan;
-        int row;
-        int col;
-
-        initializeBoard();
-        scan = new Scanner(System.in);
         board = new int[ROWS][COLS];
-
-
-        for(int r = 0; r < 4; r++)
-        {
-            for(int c = 0; c < 5; c++)
-            {
-                System.out.print(board[r][c] + " ");
-            }
-        }
-
-        System.out.println("Please enter row: ");
-        row = scan.nextInt();
-        System.out.println("Please enter column: ");
-        col = scan.nextInt();
-
-        if(evaluateInput(16, 2, 1))
-        {
-            System.out.println("Can place here boi");
-        }
-        else
-        {
-            System.out.println("Cant place here");
-        }
+        rand = new Random();
+        currentNumber = generateNextNumber();
+        numbersPlaced = INITIAL;
 
     }
 
-    private static void initializeBoard()
+    private int generateNextNumber()
+    {
+        return rand.nextInt(1000) + 1;
+    }
+
+    private void initializeBoard()
+    {
+        for (int r = 0; r < ROWS; r++)
+        {
+            for (int c = 0; c < COLS; c++)
+            {
+                board[r][c] = INITIAL;
+            }
+        }
+    }
+
+    public List<Integer> getElementsBefore(int row, int col)
+    {
+        final List<Integer> valuesBefore;
+
+        valuesBefore = new ArrayList<>();
+
+        for (int r = 0; r <= row; r++)
+        {
+            for (int c = 0; c < (r == row ? col : 5); c++)
+            {
+                final int value;
+                value = board[r][c];
+                valuesBefore.add(value);
+            }
+        }
+
+        return valuesBefore;
+    }
+
+    public List<Integer> getElementsAfter(int row, int col)
+    {
+        final List<Integer> valuesAfter;
+
+        valuesAfter = new ArrayList<>();
+
+        for (int r = row; r < 4; r++)
+        {
+            for (int c = (r == row ? col + 1 : 0); c < 5; c++)
+            {
+                final int value;
+                value = board[r][c];
+                valuesAfter.add(value);
+            }
+        }
+
+        return valuesAfter;
+    }
+
+    private void handlePlacement(final int row, final int col)
+    {
+        if(isValidPlacement(row, col, currentNumber))
+        {
+            board[row][col] = currentNumber;
+            numbersPlaced++;
+//            if(numbersPlaced == TOTAL_NUMBERS || isGameOver())
+//            {
+//                System.out.println("Game over! You " +
+//                        (numbersPlaced == TOTAL_NUMBERS ? "win!" : "lose."));
+//            }
+            generateNextNumber();
+        }
+    }
+
+    private boolean hasValidPlacement(final int number)
     {
         for(int r = 0; r < ROWS; r++)
         {
             for(int c = 0; c < COLS; c++)
             {
-                board[r][c] = ELEM_INITIAL;
+                if(isValidPlacement(r, c, number))
+                    return true;
             }
         }
-    }
 
-//    @Override
-    public static boolean evaluateInput(final int input, final int row, final int col)
-    {
-        final int placement = board[row][col];
-
-        //       2      1
-        if(placement == 0)
-        {
-            // Before
-            for(int r = 0; r <= row; r++)
-            {
-                for(int c = 0; c < (r == row ? col : 5); c++)
-                {
-                    final int previous;
-
-                    previous = board[r][c];
-
-                    if(previous > placement)
-                    {
-                        return false;
-                    }
-                }
-            }
-
-
-            // After
-            //         2
-            for(int r = row; r < 4; r++)
-            {
-                //           2 == 2    col != col
-                for(int c = (r == row ? col + 1 : 0); c < 5; c++)
-                {
-                    final int next;
-
-                    next = board[r][c];
-
-                    if(next != 0 && next < placement)
-                    {
-                        return false;
-                    }
-                }
-            }
-//            previous =
-
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    @Override
-    public boolean isGameOver()
-    {
         return false;
     }
 
-    //    @Override
-//    void play()
-//    {
-//        int currentNumber;
-//
-//        currentNumber = rand.nextInt(1000) + 1;
-//        do
-//        {
-//            final int input;
-//            System.out.println("The number is: " + currentNumber);
-//            System.out.println("Which slot would you like to put it in?");
-////            input = scan.nextInt();
-////            evaluateInput(input);
-//
-//        }
-//        while(!isGameOver());
-//    }
+    private boolean isValidPlacement(final int row, final int col, final int number)
+    {
+        if(board[row][col] == INITIAL)
+        {
+            final List<Integer> elementsBefore;
+            final List<Integer> elementsAfter;
+            final int maxBefore;
+            final int minAfter;
 
-//    private static void handlePlacement()
-//    {
-//        if()
-//    }
+            elementsBefore = getElementsBefore(row, col);
+            elementsAfter = getElementsAfter(row, col);
+
+            maxBefore = elementsBefore.stream()
+                    .filter(e -> e != INITIAL)
+                    .max(Integer::compareTo)
+                    .orElse(Integer.MIN_VALUE);
+
+            minAfter = elementsAfter.stream()
+                    .filter(e -> e != INITIAL)
+                    .max(Integer::compareTo)
+                    .orElse(Integer.MAX_VALUE);
+
+            return number > maxBefore && number < minAfter;
+        }
+
+        return false;
+    }
+
+    private void isGameOver()
+    {
+        if(numbersPlaced == TOTAL_NUMBERS)
+        {
+
+        }
+    }
 }
