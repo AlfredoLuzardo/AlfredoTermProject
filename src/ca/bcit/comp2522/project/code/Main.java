@@ -1,4 +1,5 @@
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.layout.GridPane;
@@ -17,9 +18,6 @@ import java.util.Scanner;
  */
 public class Main extends Application
 {
-    private static final int ROWS = 4;
-    private static final int COLS = 5;
-
     public static void main(final String[] args)
     {
         launch(args);
@@ -28,14 +26,10 @@ public class Main extends Application
     @Override
     public void start(final Stage primaryStage)
     {
+        Platform.setImplicitExit(false);
+
         final Scanner s;
         char choice;
-
-        grid = new GridPane();
-        grid.setHgap(10);
-        grid.setVgap(10);
-
-        initializeGrid(grid);
 
         choice = '\0';
         s = new Scanner(System.in);
@@ -70,7 +64,7 @@ public class Main extends Application
                 case 'N':
                     NumberGame numberGame;
                     numberGame = new NumberGame();
-                    primaryStage.show();
+                    numberGame.play();
                     break;
 
                 case 'm':
@@ -88,9 +82,5 @@ public class Main extends Application
             }
         }
         while (choice != 'q' && choice != 'Q');
-
-        scene = new Scene(grid, 800, 600);
-        primaryStage.setScene(scene);
-        primaryStage.setTitle("Number Game");
     }
 }
