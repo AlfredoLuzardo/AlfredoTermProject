@@ -1,3 +1,4 @@
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -6,6 +7,7 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Priority;
 import javafx.stage.Stage;
 
 import java.util.ArrayList;
@@ -28,12 +30,17 @@ public class NumberGame
     private static final int VERT_GAP       = 10;
     private static final int TOTAL_NUMBERS  = ROWS * COLS;
     private static final int WIDTH_PX       = 800;
-    private static final int HEIGHT_PX      = 600;
+    private static final int HEIGHT_PX      = 400;
     private static final int UPPER_BOUND    = 1000;
     private static final int LOWER_BOUND    = 1;
 
     private static final int[][] board  = new int[ROWS][COLS];
     private static final Random rand    = new Random();
+
+    private static int totalGames;
+    private static int wonGames;
+    private static int lostGames;
+    private static int successfulPlacements;
 
     private static int currentNumber;
     private static int numbersPlaced;
@@ -51,18 +58,26 @@ public class NumberGame
         final BorderPane root;
         final Scene scene;
 
+        totalGames = INITIAL;
+        wonGames = INITIAL;
+        lostGames = INITIAL;
+        successfulPlacements = INITIAL;
+
         root    = new BorderPane();
         grid    = new GridPane();
         label   = new Label("Starting Game");
 
         grid.setHgap(HOR_GAP);
         grid.setVgap(VERT_GAP);
+        grid.setMaxWidth(Double.MAX_VALUE);
         initializeGrid();
 
         initializeGame();
 
         root.setTop(label);
         root.setCenter(grid);
+        BorderPane.setAlignment(label, Pos.CENTER);
+        BorderPane.setAlignment(grid, Pos.CENTER);
 
         scene = new Scene(root, WIDTH_PX, HEIGHT_PX);
         scene.getStylesheets().add(getClass().getResource("styles.css").toExternalForm());
@@ -102,15 +117,21 @@ public class NumberGame
 
         primaryStage.setAlwaysOnTop(false);
 
-        alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setHeaderText(null);
         alert.setTitle("Game Over");
+
+        totalGames++;
 
         if(numbersPlaced == TOTAL_NUMBERS)
         {
             alert.setContentText("You won!");
+            wonGames++;
         }
-        else {
+        else
+        {
             alert.setContentText("Game Over! Impossible to place the next number: " + currentNumber + ". Try again?");
+            lostGames++;
         }
 
         tryAgain = new ButtonType("Try Again");
@@ -246,6 +267,7 @@ public class NumberGame
         {
             board[row][col] = currentNumber;
             numbersPlaced++;
+            successfulPlacements++;
         }
     }
 
@@ -386,7 +408,9 @@ public class NumberGame
 
                 b = new Button("[ ]");
 
+                b.setMaxWidth(Double.MAX_VALUE);
                 b.setOnAction(e -> handleButtonClick(row, col, b));
+                GridPane.setHgrow(b, Priority.ALWAYS);
 
                 grid.add(b, c, r);
             }
