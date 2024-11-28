@@ -1,9 +1,13 @@
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.GridPane;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 /**
- *
+ * NumberGame class
  */
 public class NumberGame
 {
@@ -23,7 +27,12 @@ public class NumberGame
         rand = new Random();
         currentNumber = generateNextNumber();
         numbersPlaced = INITIAL;
+    }
 
+    public void play()
+    {
+        final GridPane grid;
+        final Scene scene;
     }
 
     private int generateNextNumber()
@@ -67,7 +76,7 @@ public class NumberGame
 
         valuesAfter = new ArrayList<>();
 
-        for (int r = row; r < 4; r++)
+        for (int r = row; r < ROWS; r++)
         {
             for (int c = (r == row ? col + 1 : 0); c < 5; c++)
             {
@@ -86,11 +95,7 @@ public class NumberGame
         {
             board[row][col] = currentNumber;
             numbersPlaced++;
-//            if(numbersPlaced == TOTAL_NUMBERS || isGameOver())
-//            {
-//                System.out.println("Game over! You " +
-//                        (numbersPlaced == TOTAL_NUMBERS ? "win!" : "lose."));
-//            }
+            // Where do I check if numbersPlaced is 20, and where do I check hasValidPlacement for the nextNumber
             generateNextNumber();
         }
     }
@@ -137,11 +142,16 @@ public class NumberGame
         return false;
     }
 
-    private void isGameOver()
+    private void initializeGrid(final GridPane grid)
     {
-        if(numbersPlaced == TOTAL_NUMBERS)
+        for(int r = 0; r < ROWS; r++)
         {
+            for(int c = 0; c < COLS; c++)
+            {
+                Button b = new Button("[ ]");
 
+                grid.add(b, c, r);
+            }
         }
     }
 }

@@ -1,4 +1,8 @@
 import javafx.application.Application;
+import javafx.scene.Scene;
+import javafx.scene.control.Button;
+import javafx.scene.layout.GridPane;
+import javafx.stage.Stage;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,17 +15,27 @@ import java.util.Scanner;
  * @author Alfredo Luzardo
  * @version 1.0
  */
-public class Main
+public class Main extends Application
 {
-    /**
-     * Main method
-     *
-     * @param args args
-     */
+    private static final int ROWS = 4;
+    private static final int COLS = 5;
+
     public static void main(final String[] args)
+    {
+        launch(args);
+    }
+
+    @Override
+    public void start(final Stage primaryStage)
     {
         final Scanner s;
         char choice;
+
+        grid = new GridPane();
+        grid.setHgap(10);
+        grid.setVgap(10);
+
+        initializeGrid(grid);
 
         choice = '\0';
         s = new Scanner(System.in);
@@ -54,7 +68,9 @@ public class Main
 
                 case 'n':
                 case 'N':
-                    System.out.println("Running Number game");
+                    NumberGame numberGame;
+                    numberGame = new NumberGame();
+                    primaryStage.show();
                     break;
 
                 case 'm':
@@ -72,5 +88,9 @@ public class Main
             }
         }
         while (choice != 'q' && choice != 'Q');
-     }
+
+        scene = new Scene(grid, 800, 600);
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Number Game");
+    }
 }
