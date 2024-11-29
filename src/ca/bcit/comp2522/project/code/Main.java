@@ -38,7 +38,7 @@ public class Main extends Application
         {
             System.out.println("Press W to play the Word game.");
             System.out.println("Press N to play the Number game.");
-            System.out.println("Press M to play the <your game's name> game.");
+            System.out.println("Press M to play Tic-Tac-Sweeper.");
             System.out.println("Press Q to quit.");
 
             choice = s.next().charAt(0);
@@ -69,7 +69,9 @@ public class Main extends Application
 
                 case 'm':
                 case 'M':
-                    System.out.println("Running M game");
+                    TicTacSweeper ticTacSweeper;
+                    ticTacSweeper = new TicTacSweeper();
+                    ticTacSweeper.play();
                     break;
 
                 case 'q':
