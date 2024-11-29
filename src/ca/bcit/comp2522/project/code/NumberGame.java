@@ -357,8 +357,8 @@ public class NumberGame extends BoardGame<Integer>
      */
     @Override
     public boolean isValidPlacement(final int row,
-                                     final int col,
-                                     final Integer number)
+                                    final int col,
+                                    final Integer number)
     {
         if(board[row][col] == INITIAL)
         {

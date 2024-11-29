@@ -19,27 +19,28 @@ import java.util.Random;
  * @author Alfredo Luzardo
  * @version 1.0
  */
-public class TicTacSweeper extends BoardGame
+public class TicTacSweeper extends BoardGame<Void>
 {
-    private static final int ROWS           = 6;
-    private static final int COLS           = 6;
-    private static final int WIDTH_PX       = 800;
-    private static final int HEIGHT_PX      = 400;
-    private static final int INITIAL_LIVES = 3;
-    private static final String PLAYER_ONE  = "X";
-    private static final String PLAYER_TWO  = "O";
+    private static final int    ROWS            = 3;
+    private static final int    COLS            = 3;
+    private static final int    WIDTH_PX        = 800;
+    private static final int    HEIGHT_PX       = 400;
+    private static final int    INITIAL_LIVES   = 3;
+    private static final String PLAYER_ONE      = "X";
+    private static final String PLAYER_TWO      = "O";
+
     private static final Cell[][] board = new Cell[ROWS][COLS];
     private static final Random   rand  = new Random();
 
     private static Stage    primaryStage;
     private static GridPane grid;
-    private static Label playerTurnLabel;
-    private static Label playerOneLivesLabel;
-    private static Label playerTwoLivesLabel;
+    private static Label    playerTurnLabel;
+    private static Label    playerOneLivesLabel;
+    private static Label    playerTwoLivesLabel;
 
-    private int playerOneLives;
-    private int playerTwoLives;
-    private String currentPlayer;
+    private int     playerOneLives;
+    private int     playerTwoLives;
+    private String  currentPlayer;
 
     @Override
     public void play()
@@ -48,20 +49,22 @@ public class TicTacSweeper extends BoardGame
         final BorderPane bottomPane;
         final Scene scene;
 
-        root = new BorderPane();
-        bottomPane= new BorderPane();
+        root        = new BorderPane();
+        bottomPane  = new BorderPane();
 
-        playerTurnLabel = new Label("Starting Game");
+        playerTurnLabel     = new Label("Starting Game");
         playerOneLivesLabel = new Label("Player One Lives: " + playerOneLives);
         playerTwoLivesLabel = new Label("Player Two Lives: " + playerTwoLives);
 
         bottomPane.setLeft(playerOneLivesLabel);
         bottomPane.setRight(playerTwoLivesLabel);
+
         BorderPane.setAlignment(playerOneLivesLabel, Pos.CENTER_LEFT);
         BorderPane.setAlignment(playerTwoLivesLabel, Pos.CENTER_RIGHT);
 
         grid = new GridPane();
         grid.setMaxWidth(Double.MAX_VALUE);
+
         initializeGrid();
 
         root.setTop(playerTurnLabel);
@@ -91,8 +94,9 @@ public class TicTacSweeper extends BoardGame
         playerTurnLabel.setText("Current Player: " + currentPlayer);
         playerOneLives = INITIAL_LIVES;
         playerTwoLives = INITIAL_LIVES;
-        playerOneLivesLabel.setText("Player One Lives: " + playerOneLives);
-        playerTwoLivesLabel.setText("Player Two Lives: " + playerTwoLives);
+        playerOneLivesLabel.setText("Player One (X) Lives: " + playerOneLives);
+        playerTwoLivesLabel.setText("Player Two (O) Lives: " + playerTwoLives);
+        resetGridText();
 
     }
 
@@ -110,9 +114,9 @@ public class TicTacSweeper extends BoardGame
         endAlert.setHeaderText(null);
         endAlert.setTitle("Game Over");
 
-        if(checkWinner())
+        if (checkWinner())
         {
-            if(currentPlayer.equals(PLAYER_ONE))
+            if (currentPlayer.equals(PLAYER_ONE))
             {
                 endAlert.setContentText("Player 1 (X) wins!");
             }
@@ -121,17 +125,28 @@ public class TicTacSweeper extends BoardGame
                 endAlert.setContentText("Player 2 (O) wins!");
             }
         }
-        else if(playerOneLives == 0)
+        else if (playerOneLives == 0)
         {
             endAlert.setContentText("Player 2 wins! Player 1 is out of lives.");
         }
-        else if(playerTwoLives == 0)
+        else if (playerTwoLives == 0)
         {
             endAlert.setContentText("Player 1 wins! Player 2 is out of lives.");
         }
-        else if(isBoardFull())
+        else if (isBoardFull())
         {
-            endAlert.setContentText("Draw. All cells have been clicked");
+            if (playerOneLives > playerTwoLives)
+            {
+                endAlert.setContentText("Player 1 wins! Player 1 has more lives.");
+            }
+            else if (playerTwoLives > playerOneLives)
+            {
+                endAlert.setContentText("Player 2 wins! Player 2 has more lives.");
+            }
+            else
+            {
+                endAlert.setContentText("Draw. The board is full, and both players have equal lives.");
+            }
         }
 
         playAgain = new ButtonType("Play Again");
@@ -225,7 +240,7 @@ public class TicTacSweeper extends BoardGame
                                      final int col,
                                      final Button button)
     {
-        if(isValidPlacement(row, col, button))
+        if(isValidPlacement(row, col))
         {
             board[row][col].reveal(currentPlayer);
             button.setText(board[row][col].toString());
@@ -295,7 +310,7 @@ public class TicTacSweeper extends BoardGame
 
     @Override
     protected boolean isValidPlacement(final int row,
-                                       final int col, Object value)
+                                       final int col)
     {
         return !board[row][col].isClicked();
     }
@@ -314,6 +329,7 @@ public class TicTacSweeper extends BoardGame
             return true;
         }
 
+
         for(int r = 0; r < ROWS; r++)
         {
             if(checkLine(r, 0, 0, 1))
@@ -321,6 +337,7 @@ public class TicTacSweeper extends BoardGame
                 return true;
             }
         }
+
 
         for(int c = 0; c < COLS; c++)
         {
