@@ -206,6 +206,42 @@ public class TicTacSweeper extends BoardGame<Void>
 
                 b.setMaxWidth(Double.MAX_VALUE);
                 b.setOnAction(e -> handleButtonClick(row, col, b));
+
+                b.setOnMouseEntered(e ->
+                {
+                    if(board[row][col].isClicked() && !(board[row][col] instanceof MineCell))
+                    {
+                        final int mineCount;
+                        mineCount = countAdjacentMines(row, col);
+                        if(mineCount != 0)
+                        {
+                            b.setText(String.valueOf(mineCount));
+                        }
+
+                        if(mineCount == 1)
+                        {
+                            b.setStyle("-fx-text-fill: blue");
+                        }
+                        else if (mineCount == 2)
+                        {
+                            b.setStyle("-fx-text-fill: green");
+                        }
+                        else if (mineCount >= 3)
+                        {
+                            b.setStyle("-fx-text-fill: red");
+                        }
+                    }
+                });
+
+                b.setOnMouseExited(e ->
+                {
+                    if(board[row][col].isClicked() && !(board[row][col] instanceof MineCell))
+                    {
+                        b.setText(board[row][col].toString());
+                        b.setStyle("");
+                    }
+                });
+
                 GridPane.setHgrow(b, Priority.ALWAYS);
 
                 grid.add(b, c, r);
@@ -400,5 +436,33 @@ public class TicTacSweeper extends BoardGame<Void>
             }
         }
         return true;
+    }
+
+    private int countAdjacentMines(final int row, final int col)
+    {
+        int count = 0;
+
+        for(int dr = -1; dr <= 1; dr++)
+        {
+            for(int dc = -1; dc <= 1; dc++)
+            {
+                final int newRow;
+                final int newCol;
+
+                newRow = row + dr;
+                newCol = col + dc;
+
+                if(newRow >= 0   &&
+                   newRow < ROWS &&
+                   newCol >= 0   &&
+                   newCol < COLS &&
+                   (dr != 0 || dc != 0) && board[newRow][newCol] instanceof MineCell)
+                {
+                    count++;
+                }
+            }
+        }
+
+        return count;
     }
 }
