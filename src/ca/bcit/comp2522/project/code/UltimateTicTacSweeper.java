@@ -375,21 +375,6 @@ public class UltimateTicTacSweeper extends BoardGame<Void>
         return a != null && a.equals(b) && b.equals(c);
     }
 
-    /*
-     * Checks whether the rows and cols are valid
-     *
-     * @param row is the row
-     * @param col is the col
-     * @throws IndexOutOfBoundsException
-     */
-    private void validateRowsAndCols(final int row, final int col)
-    {
-        if (row < ROWS_LOWER_BOUND || row > ROWS || col < COLS_LOWER_BOUND || col > COLS)
-        {
-            throw new IndexOutOfBoundsException(ROWS_COLS_EXCEPTION_MSG);
-        }
-    }
-
     /**
      * Checks if the board is full
      *
@@ -410,4 +395,19 @@ public class UltimateTicTacSweeper extends BoardGame<Void>
         return true;
     }
 
+    /*
+     * Checks whether the rows and cols are valid
+     *
+     * @param row is the row
+     * @param col is the col
+     * @throws IndexOutOfBoundsException
+     */
+    private void validateRowsAndCols(final int row, final int col)
+    {
+        if (row < ROWS_LOWER_BOUND || row > ROWS ||
+            col < COLS_LOWER_BOUND || col > COLS)
+        {
+            throw new IndexOutOfBoundsException(ROWS_COLS_EXCEPTION_MSG);
+        }
+    }
 }

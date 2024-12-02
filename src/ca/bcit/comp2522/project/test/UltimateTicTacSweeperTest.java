@@ -7,6 +7,9 @@ import org.junit.jupiter.api.Test;
 import java.util.concurrent.CountDownLatch;
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * TestClass
+ */
 public class UltimateTicTacSweeperTest
 {
     private UltimateTicTacSweeper game1;
