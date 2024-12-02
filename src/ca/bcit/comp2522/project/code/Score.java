@@ -20,9 +20,20 @@ import java.util.List;
  */
 public class Score
 {
-    private static final String SCORE_PATH          = "score.txt";
-    private static final int FIRST_ATTEMPT_VAL      = 2;
-    private static final int SECOND_ATTEMPT_VAL     = 1;
+    private static final int NUM_GAMES_INITIAL                   = 0;
+    private static final int NUM_CORRECT_FIRST_ATTEMPT_INITIAL   = 0;
+    private static final int NUM_CORRECT_SECOND_ATTEMPT_INITIAL  = 0;
+    private static final int NUM_INCORRECT_INITIAL               = 0;
+    private static final int FIRST_ATTEMPT_VAL                   = 2;
+    private static final int SECOND_ATTEMPT_VAL                  = 1;
+    private static final String SCORE_PATH               = "score.txt";
+    private static final String TOTAL_SCORE_TXT          = "Total Score: ";
+    private static final String DATE_TIME_FMT            = "yyyy-MM-dd HH:mm:ss";
+    private static final String DATE_TIME_TXT            = "Date and Time: ";
+    private static final String GAMES_PLAYED_TXT         = "Games Played: ";
+    private static final String CORR_FIRST_ATTEMPTS_TXT  = "Correct First Attempts: ";
+    private static final String CORR_SECOND_ATTEMPTS_TXT = "Correct Second Attempts: ";
+    private static final String INCORRECT_ATTEMPTS_TXT   = "Incorrect Attempts: ";
 
     private final LocalDateTime dateTimePlayed;
     private final int           numGamesPlayed;
@@ -52,7 +63,7 @@ public class Score
     }
 
     /**
-     * Get total score
+     * Getter for total score
      *
      * @return totalScore
      */
@@ -70,6 +81,53 @@ public class Score
         return totalScore;
     }
 
+    /**
+     * Getter for dateTimePlayed
+     *
+     * @return dateTimePlayed
+     */
+    public LocalDateTime getDateTimePlayed()
+    {
+        return dateTimePlayed;
+    }
+
+    /**
+     * Gets the highestScore
+     *
+     * @return highestScore
+     */
+    public static Score getHighestScore()
+    {
+        final List<Score> scores;
+
+        scores = readScoresFromFile(SCORE_PATH);
+
+        return scores.stream()
+                .max(Comparator.comparingInt(Score::getScore))
+                .orElse(null);
+    }
+
+    /**
+     * Gets the averageScore per game
+     *
+     * @return average
+     */
+    public double getAverageScore()
+    {
+        final double average;
+
+        average = (double) getScore() / numGamesPlayed;
+
+        return average;
+    }
+
+    /**
+     * Appends the score to a file;
+     *
+     * @param score score
+     * @param file file
+     * @throws IOException e
+     */
     public static void appendScoreToFile(final Score score,
                                          final String file)
             throws IOException
@@ -87,6 +145,12 @@ public class Score
         Files.writeString(path, score.toString() + "\n", StandardOpenOption.APPEND);
     }
 
+    /**
+     * Reads scores from a file
+     *
+     * @param file file
+     * @return scores
+     */
     public static List<Score> readScoresFromFile(final String file)
     {
         final List<Score> scores;
@@ -99,7 +163,8 @@ public class Score
             final List<String> lines;
             final List<String> currentBlock;
 
-            path = Paths.get(file);
+            path         = Paths.get(file);
+            currentBlock = new ArrayList<>();
 
             if(Files.notExists(path))
             {
@@ -107,7 +172,6 @@ public class Score
             }
 
             lines = Files.readAllLines(path);
-            currentBlock = new ArrayList<>();
 
             if(!lines.isEmpty())
             {
@@ -115,7 +179,7 @@ public class Score
                 {
                     if(line != null)
                     {
-                        if(!line.startsWith("Total Score: "))
+                        if(!line.startsWith(TOTAL_SCORE_TXT))
                         {
                             if(line.trim().isEmpty())
                             {
@@ -137,16 +201,28 @@ public class Score
         return scores;
     }
 
+    /*
+     * Parses a score block
+     *
+     * @param scoreBlock is the scoreBlock
+     * @return score
+     */
     private static Score parseScoreBlock(final List<String> scoreBlock)
     {
         final DateTimeFormatter formatter;
-        LocalDateTime dateTime = null;
-        int numGamesPlayed = 0;
-        int numCorrectFirstAttempt = 0;
-        int numCorrectSecondAttempt = 0;
-        int numIncorrectTwoAttempt = 0;
+        LocalDateTime dateTime;
+        int numGamesPlayed;
+        int numCorrectFirstAttempt;
+        int numCorrectSecondAttempt;
+        int numIncorrectTwoAttempt;
 
-        formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        dateTime                = null;
+        numGamesPlayed          = NUM_GAMES_INITIAL;
+        numCorrectFirstAttempt  = NUM_CORRECT_FIRST_ATTEMPT_INITIAL;
+        numCorrectSecondAttempt = NUM_CORRECT_SECOND_ATTEMPT_INITIAL;
+        numIncorrectTwoAttempt  = NUM_INCORRECT_INITIAL;
+
+        formatter = DateTimeFormatter.ofPattern(DATE_TIME_FMT);
 
         if(!scoreBlock.isEmpty())
         {
@@ -154,28 +230,28 @@ public class Score
             {
                 if(line != null)
                 {
-                    if(line.startsWith("Date and Time: "))
+                    if(line.startsWith(DATE_TIME_TXT))
                     {
                         final String dateTimeString;
 
-                        dateTimeString = line.substring("Date and Time: ".length()).trim();
+                        dateTimeString = line.substring(DATE_TIME_TXT.length()).trim();
                         dateTime = LocalDateTime.parse(dateTimeString, formatter);
                     }
-                    else if(line.startsWith("Games Played: "))
+                    else if(line.startsWith(GAMES_PLAYED_TXT))
                     {
-                        numGamesPlayed = Integer.parseInt(line.substring("Games Played: ".length()).trim());
+                        numGamesPlayed = Integer.parseInt(line.substring(GAMES_PLAYED_TXT.length()).trim());
                     }
-                    else if(line.startsWith("Correct First Attempts: "))
+                    else if(line.startsWith(CORR_FIRST_ATTEMPTS_TXT))
                     {
-                        numCorrectFirstAttempt = Integer.parseInt(line.substring("Correct First Attempts: ".length()).trim());
+                        numCorrectFirstAttempt = Integer.parseInt(line.substring(CORR_FIRST_ATTEMPTS_TXT.length()).trim());
                     }
-                    else if(line.startsWith("Correct Second Attempts: "))
+                    else if(line.startsWith(CORR_SECOND_ATTEMPTS_TXT))
                     {
-                        numCorrectSecondAttempt = Integer.parseInt(line.substring("Correct Second Attempts: ".length()).trim());
+                        numCorrectSecondAttempt = Integer.parseInt(line.substring(CORR_SECOND_ATTEMPTS_TXT.length()).trim());
                     }
-                    else if(line.startsWith("Incorrect Attempts: "))
+                    else if(line.startsWith(INCORRECT_ATTEMPTS_TXT))
                     {
-                        numIncorrectTwoAttempt = Integer.parseInt(line.substring("Incorrect Attempts: ".length()).trim());
+                        numIncorrectTwoAttempt = Integer.parseInt(line.substring(INCORRECT_ATTEMPTS_TXT.length()).trim());
                     }
                 }
             }
@@ -184,22 +260,29 @@ public class Score
         return new Score(dateTime, numGamesPlayed, numCorrectFirstAttempt, numCorrectSecondAttempt, numIncorrectTwoAttempt);
     }
 
-    public LocalDateTime getDateTimePlayed()
-    {
-        return dateTimePlayed;
-    }
-
+    /**
+     * Returns a formattedDateTime
+     *
+     * @param dateTime dateTime
+     * @return formattedDateTime
+     */
     public static String formattedDateTime(final LocalDateTime dateTime)
     {
         final DateTimeFormatter formatter;
         final String formattedDateTime;
 
-        formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+        formatter = DateTimeFormatter.ofPattern(DATE_TIME_FMT);
         formattedDateTime = dateTime.format(formatter);
 
         return formattedDateTime;
     }
 
+    /**
+     * Returns if the score is a high score
+     *
+     * @param score score
+     * @return true if the score is greater than all the other scores
+     */
     public static boolean isHighScore(final Score score)
     {
         final List<Score> otherScores;
@@ -213,25 +296,11 @@ public class Score
 
     }
 
-    public static Score getHighestScore()
-    {
-        final List<Score> scores;
-        scores = readScoresFromFile(SCORE_PATH);
-
-        return scores.stream()
-                .max(Comparator.comparingInt(Score::getScore))
-                .orElse(null);
-    }
-
-    public double getAverageScore()
-    {
-        final double average;
-
-        average = (double) getScore() / numGamesPlayed;
-
-        return average;
-    }
-
+    /**
+     * ToString method
+     *
+     * @return scoreInfoStr
+     */
     public String toString()
     {
         final StringBuilder builder;
@@ -239,19 +308,19 @@ public class Score
 
         builder = new StringBuilder();
 
-        builder.append("Date and Time: ");
+        builder.append(DATE_TIME_TXT);
         builder.append(formattedDateTime(dateTimePlayed));
 
-        builder.append("\nGames Played: ");
+        builder.append("\n" + GAMES_PLAYED_TXT);
         builder.append(numGamesPlayed);
 
-        builder.append("\nCorrect First Attempts: ");
+        builder.append("\n" + CORR_FIRST_ATTEMPTS_TXT);
         builder.append(numCorrectFirstAttempt);
 
-        builder.append("\nCorrect Second Attempts: ");
+        builder.append("\n" + CORR_SECOND_ATTEMPTS_TXT);
         builder.append(numCorrectSecondAttempt);
 
-        builder.append("\nIncorrect Attempts: ");
+        builder.append("\n" + INCORRECT_ATTEMPTS_TXT);
         builder.append(numIncorrectTwoAttempt);
 
         builder.append("\nScore: ");

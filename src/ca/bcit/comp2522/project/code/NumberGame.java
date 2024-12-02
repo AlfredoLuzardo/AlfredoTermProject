@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Random;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * NumberGame class
@@ -24,19 +25,34 @@ import java.util.Random;
  */
 public class NumberGame extends BoardGame<Integer>
 {
-    private static final int ROWS           = 4;
-    private static final int COLS           = 5;
-    private static final int INITIAL        = 0;
-    private static final int HOR_GAP        = 10;
-    private static final int VERT_GAP       = 10;
-    private static final int TOTAL_NUMBERS  = ROWS * COLS;
-    private static final int WIDTH_PX       = 800;
-    private static final int HEIGHT_PX      = 400;
-    private static final int UPPER_BOUND    = 1000;
-    private static final int LOWER_BOUND    = 1;
-
-    private static final Random rand    = new Random();
+    private static final int ROWS                           = 4;
+    private static final int COLS                           = 5;
+    private static final int INITIAL_BOARD_VAL              = 0;
+    private static final int INITIAL_NUMBERS_PLACED         = 0;
+    private static final int INITIAL_SUCCESSFUL_PLACEMENTS  = 0;
+    private static final int INITIAL_TOTAL_GAMES            = 0;
+    private static final int INITIAL_WON_GAMES              = 0;
+    private static final int INITIAL_LOST_GAMES             = 0;
+    private static final int GRID_HOR_GAP_PX                = 10;
+    private static final int GRID_VERT_GAP_PX               = 10;
+    private static final int SCENE_WIDTH_PX                 = 800;
+    private static final int SCENE_HEIGHT_PX                = 400;
+    private static final int NUMBERS_UPPER_BOUND            = 1000;
+    private static final int NUMBERS_LOWER_BOUND            = 1;
+    private static final int INCREMENT_COL_VAL              = 1;
+    private static final String STYLESHEET_PATH     = "numbergame.css";
+    private static final String STAGE_TITLE_TXT     = "Number Game";
+    private static final String STARTING_LABEL_TXT  = "Next number: ";
+    private static final String GAME_OVER_TITLE_TXT = "Game Over";
+    private static final String TRY_AGAIN_BTN_TXT   = "Try Again";
+    private static final String QUIT_BTN_TXT        = "Quit";
+    private static final String DECIMAL_FORMAT_TXT  = "#.##";
+    private static final String END_ALERT_WON_TEXT  = "You won!";
+    private static final String SCORE_ALERT_TITLE   = "Score";
+    private static final String EMPTY_BTN_TXT       = "[ ]";
     private static final int[][] board  = new int[ROWS][COLS];
+    private static final Random rand    = new Random();
+    private static final int TOTAL_NUMBERS;
 
     private static int      totalGames;
     private static int      wonGames;
@@ -48,44 +64,54 @@ public class NumberGame extends BoardGame<Integer>
     private static GridPane grid;
     private static Label    label;
 
+    private CountDownLatch latch;
+
+    static
+    {
+        TOTAL_NUMBERS           = ROWS * COLS;
+        totalGames              = INITIAL_TOTAL_GAMES;
+        wonGames                = INITIAL_WON_GAMES;
+        lostGames               = INITIAL_LOST_GAMES;
+        successfulPlacements    = INITIAL_SUCCESSFUL_PLACEMENTS;
+    }
+
     /**
      * play method
      * <p>
      * Plays NumberGame
+     *
+     * @param latch latch
      */
     @Override
-    public void play()
+    public void play(final CountDownLatch latch)
     {
         final BorderPane root;
         final Scene scene;
 
-        totalGames = INITIAL;
-        wonGames = INITIAL;
-        lostGames = INITIAL;
-        successfulPlacements = INITIAL;
+        this.latch  = latch;
+        root        = new BorderPane();
+        grid        = new GridPane();
+        label       = new Label(STARTING_LABEL_TXT);
 
-        root    = new BorderPane();
-        grid    = new GridPane();
-        label   = new Label("Starting Game");
-
-        grid.setHgap(HOR_GAP);
-        grid.setVgap(VERT_GAP);
+        grid.setHgap(GRID_HOR_GAP_PX);
+        grid.setVgap(GRID_VERT_GAP_PX);
         grid.setMaxWidth(Double.MAX_VALUE);
-        initializeGrid();
 
+        initializeGrid();
         initializeGame();
 
         root.setTop(label);
         root.setCenter(grid);
+
         BorderPane.setAlignment(label, Pos.CENTER);
         BorderPane.setAlignment(grid, Pos.CENTER);
 
-        scene = new Scene(root, WIDTH_PX, HEIGHT_PX);
-        scene.getStylesheets().add(getClass().getResource("numbergame.css").toExternalForm());
+        scene = new Scene(root, SCENE_WIDTH_PX, SCENE_HEIGHT_PX);
+        scene.getStylesheets().add(getClass().getResource(STYLESHEET_PATH).toExternalForm());
 
         primaryStage = new Stage();
         primaryStage.setScene(scene);
-        primaryStage.setTitle("Number Game");
+        primaryStage.setTitle(STAGE_TITLE_TXT);
         primaryStage.setAlwaysOnTop(true);
         primaryStage.showAndWait();
     }
@@ -100,9 +126,26 @@ public class NumberGame extends BoardGame<Integer>
     {
         currentNumber = generateNextNumber();
         updateLabelNumber(label);
-        numbersPlaced = INITIAL;
+        numbersPlaced = INITIAL_NUMBERS_PLACED;
         initializeBoard();
         resetGridText();
+    }
+
+    /**
+     * initializeBoard method
+     * <p>
+     * initializes the game board
+     */
+    @Override
+    public void initializeBoard()
+    {
+        for(int r = 0; r < ROWS; r++)
+        {
+            for(int c = 0; c < COLS; c++)
+            {
+                board[r][c] = INITIAL_BOARD_VAL;
+            }
+        }
     }
 
     /**
@@ -122,13 +165,13 @@ public class NumberGame extends BoardGame<Integer>
 
         endAlert = new Alert(Alert.AlertType.INFORMATION);
         endAlert.setHeaderText(null);
-        endAlert.setTitle("Game Over");
+        endAlert.setTitle(GAME_OVER_TITLE_TXT);
 
         totalGames++;
 
         if(numbersPlaced == TOTAL_NUMBERS)
         {
-            endAlert.setContentText("You won!");
+            endAlert.setContentText(END_ALERT_WON_TEXT);
             wonGames++;
         }
         else
@@ -137,10 +180,10 @@ public class NumberGame extends BoardGame<Integer>
             lostGames++;
         }
 
-        tryAgain = new ButtonType("Try Again");
-        quit = new ButtonType("Quit");
-        endAlert.getButtonTypes().setAll(tryAgain, quit);
+        tryAgain = new ButtonType(TRY_AGAIN_BTN_TXT);
+        quit     = new ButtonType(QUIT_BTN_TXT);
 
+        endAlert.getButtonTypes().setAll(tryAgain, quit);
         result = endAlert.showAndWait();
         showScoreStatus();
 
@@ -154,23 +197,133 @@ public class NumberGame extends BoardGame<Integer>
             final Stage stage;
             stage = (Stage) label.getScene().getWindow();
             stage.close();
+            closeGame();
         }
     }
 
+    /**
+     * isValidPlacement method
+     * <p>
+     * Checks if the point selected by the user is a valid location
+     * for the number to be placed in
+     *
+     * @param row is the row
+     * @param col is the col
+     * @param number is the number
+     * @return true if the number can be placed in the selected point
+     */
+    @Override
+    public boolean isValidPlacement(final int row,
+                                    final int col,
+                                    final Integer number)
+    {
+        if(board[row][col] == INITIAL_BOARD_VAL)
+        {
+            final List<Integer> elementsBefore;
+            final List<Integer> elementsAfter;
+            final int maxBefore;
+            final int minAfter;
+
+            elementsBefore = getElementsBefore(row, col);
+            elementsAfter = getElementsAfter(row, col);
+
+            maxBefore = elementsBefore.stream()
+                    .filter(e -> e != INITIAL_BOARD_VAL)
+                    .max(Integer::compareTo)
+                    .orElse(Integer.MIN_VALUE);
+
+            minAfter = elementsAfter.stream()
+                    .filter(e -> e != INITIAL_BOARD_VAL)
+                    .min(Integer::compareTo)
+                    .orElse(Integer.MAX_VALUE);
+
+            return number > maxBefore && number < minAfter;
+        }
+
+        return false;
+    }
+
+    /**
+     * handleButtonClick method
+     * <p>
+     * Handles the logic behind a button being clicked
+     *
+     * @param row is the row
+     * @param col is the col
+     * @param button is the button
+     */
+    @Override
+    public void handleButtonClick(final int row,
+                                  final int col,
+                                  final Button button)
+    {
+        if(isValidPlacement(row, col, currentNumber))
+        {
+            handlePlacement(row, col);
+            button.setText(Integer.toString(currentNumber));
+
+            if(numbersPlaced == TOTAL_NUMBERS)
+            {
+                endGame();
+            }
+            else
+            {
+                currentNumber = generateNextNumber();
+                updateLabelNumber(label);
+            }
+
+
+            if(!hasValidPlacement(currentNumber))
+            {
+                endGame();
+            }
+        }
+    }
+
+    /*
+     * Closes the game
+     */
+    private void closeGame()
+    {
+        latch.countDown();
+    }
+
+    /*
+     * Shows the scoreStatus
+     */
     private void showScoreStatus()
     {
         final Alert scoreAlert;
-        final DecimalFormat df;
         final double averagePlacements;
-        final StringBuilder builder;
         final String scoreString;
 
-        df = new DecimalFormat("#.##");
-        scoreAlert = new Alert(Alert.AlertType.INFORMATION);
-        averagePlacements = totalGames > 0 ? (double) successfulPlacements / totalGames : 0;
+        scoreAlert          = new Alert(Alert.AlertType.INFORMATION);
+        averagePlacements   = totalGames > INITIAL_TOTAL_GAMES ?
+                            (double) successfulPlacements / totalGames : INITIAL_TOTAL_GAMES;
+        scoreString         = buildScoreString(averagePlacements);
+
+        scoreAlert.setHeaderText(null);
+        scoreAlert.setTitle(SCORE_ALERT_TITLE);
+        scoreAlert.setContentText(scoreString);
+        scoreAlert.showAndWait();
+    }
+
+    /*
+     * Builds the scoreString
+     *
+     * @param averagePlacements is the averagePlacements per game
+     * @return scoreString
+     */
+    private String buildScoreString(final double averagePlacements)
+    {
+        final StringBuilder builder;
+        final DecimalFormat df;
+        final String scoreString;
+
+        df      = new DecimalFormat(DECIMAL_FORMAT_TXT);
         builder = new StringBuilder();
 
-        if(wonGames > 0)
+        if(wonGames > INITIAL_WON_GAMES)
         {
             builder.append("You won ");
             builder.append(wonGames);
@@ -179,7 +332,7 @@ public class NumberGame extends BoardGame<Integer>
             builder.append(" games\n");
         }
 
-        if(lostGames > 0)
+        if(lostGames > INITIAL_LOST_GAMES)
         {
             builder.append("You lost ");
             builder.append(lostGames);
@@ -196,14 +349,10 @@ public class NumberGame extends BoardGame<Integer>
         builder.append(" per game\n");
 
         scoreString = builder.toString();
-
-        scoreAlert.setHeaderText(null);
-        scoreAlert.setTitle("Score");
-        scoreAlert.setContentText(scoreString);
-        scoreAlert.showAndWait();
+        return scoreString;
     }
 
-    /**
+    /*
      * generateNextNumber method
      * <p>
      * Generates the next number between the upper and lower bounds
@@ -214,12 +363,12 @@ public class NumberGame extends BoardGame<Integer>
     {
         final int nextNumber;
 
-        nextNumber = rand.nextInt(UPPER_BOUND) + LOWER_BOUND;
+        nextNumber = rand.nextInt(NUMBERS_UPPER_BOUND) + NUMBERS_LOWER_BOUND;
 
         return nextNumber;
     }
 
-    /**
+    /*
      * updateLabelNumber method
      * <p>
      * Updates the label to match the currentNumber
@@ -231,24 +380,7 @@ public class NumberGame extends BoardGame<Integer>
         label.setText("Next number: " + currentNumber + " - Select a slot");
     }
 
-    /**
-     * initializeBoard method
-     * <p>
-     * initializes the game board
-     */
-    @Override
-    public void initializeBoard()
-    {
-        for(int r = 0; r < ROWS; r++)
-        {
-            for(int c = 0; c < COLS; c++)
-            {
-                board[r][c] = INITIAL;
-            }
-        }
-    }
-
-    /**
+    /*
      * getElementsBefore method
      * <p>
      * gets the elements before the given point on the grid
@@ -257,7 +389,7 @@ public class NumberGame extends BoardGame<Integer>
      * @param col is the col
      * @return valuesBefore
      */
-    public List<Integer> getElementsBefore(final int row, final int col)
+    private List<Integer> getElementsBefore(final int row, final int col)
     {
         final List<Integer> valuesBefore;
 
@@ -276,7 +408,7 @@ public class NumberGame extends BoardGame<Integer>
         return valuesBefore;
     }
 
-    /**
+    /*
      * getElementsAfter method
      * <p>
      * gets the elements after the given point on the grid
@@ -285,7 +417,7 @@ public class NumberGame extends BoardGame<Integer>
      * @param col is the col
      * @return valuesAfter
      */
-    public List<Integer> getElementsAfter(final int row, final int col)
+    private List<Integer> getElementsAfter(final int row, final int col)
     {
         final List<Integer> valuesAfter;
 
@@ -293,7 +425,7 @@ public class NumberGame extends BoardGame<Integer>
 
         for (int r = row; r < ROWS; r++)
         {
-            for (int c = (r == row ? col + 1 : 0); c < COLS; c++)
+            for (int c = (r == row ? col + INCREMENT_COL_VAL : 0); c < COLS; c++)
             {
                 final int value;
                 value = board[r][c];
@@ -304,7 +436,7 @@ public class NumberGame extends BoardGame<Integer>
         return valuesAfter;
     }
 
-    /**
+    /*
      * handlePlacement method
      * <p>
      * handles the placing of the currentNumber in the selected point
@@ -322,7 +454,7 @@ public class NumberGame extends BoardGame<Integer>
         }
     }
 
-    /**
+    /*
      * hasValidPlacement method
      * <p>
      * checks if the number can be placed on the board
@@ -344,85 +476,7 @@ public class NumberGame extends BoardGame<Integer>
         return false;
     }
 
-    /**
-     * isValidPlacement method
-     * <p>
-     * Checks if the point selected by the user is a valid location
-     * for the number to be placed in
-     *
-     * @param row is the row
-     * @param col is the col
-     * @param number is the number
-     * @return true if the number can be placed in the selected point
-     */
-    @Override
-    public boolean isValidPlacement(final int row,
-                                    final int col,
-                                    final Integer number)
-    {
-        if(board[row][col] == INITIAL)
-        {
-            final List<Integer> elementsBefore;
-            final List<Integer> elementsAfter;
-            final int maxBefore;
-            final int minAfter;
-
-            elementsBefore = getElementsBefore(row, col);
-            elementsAfter = getElementsAfter(row, col);
-
-            maxBefore = elementsBefore.stream()
-                    .filter(e -> e != INITIAL)
-                    .max(Integer::compareTo)
-                    .orElse(Integer.MIN_VALUE);
-
-            minAfter = elementsAfter.stream()
-                    .filter(e -> e != INITIAL)
-                    .min(Integer::compareTo)
-                    .orElse(Integer.MAX_VALUE);
-
-            return number > maxBefore && number < minAfter;
-        }
-
-        return false;
-    }
-
-    /**
-     * handleButtonClick method
-     * <p>
-     * Handles the logic behind a button being clicked
-     *
-     * @param row is the row
-     * @param col is the col
-     * @param button is the button
-     */
-    @Override
-    public void handleButtonClick(final int row,
-                                   final int col,
-                                   final Button button)
-    {
-        if(isValidPlacement(row, col, currentNumber))
-        {
-            handlePlacement(row, col);
-            button.setText(Integer.toString(currentNumber));
-
-            if(numbersPlaced == TOTAL_NUMBERS)
-            {
-                endGame();
-            }
-            else
-            {
-                currentNumber = generateNextNumber();
-                updateLabelNumber(label);
-            }
-
-            if(!hasValidPlacement(currentNumber))
-            {
-                endGame();
-            }
-        }
-    }
-
-    /**
+    /*
      * resetGridText method
      * <p>
      * Resets the text of all the buttons within the grid
@@ -437,14 +491,14 @@ public class NumberGame extends BoardGame<Integer>
                 {
                     if(node instanceof Button button)
                     {
-                        button.setText("[ ]");
+                        button.setText(EMPTY_BTN_TXT);
                     }
                 }
             }
         }
     }
 
-    /**
+    /*
      * initializeGrid method
      * <p>
      * Initializes the grid
@@ -456,10 +510,12 @@ public class NumberGame extends BoardGame<Integer>
             for(int c = 0; c < COLS; c++)
             {
                 final Button b;
-                final int row = r;
-                final int col = c;
+                final int row;
+                final int col;
 
-                b = new Button("[ ]");
+                b = new Button(EMPTY_BTN_TXT);
+                row = r;
+                col = c;
 
                 b.setMaxWidth(Double.MAX_VALUE);
                 b.setOnAction(e -> handleButtonClick(row, col, b));

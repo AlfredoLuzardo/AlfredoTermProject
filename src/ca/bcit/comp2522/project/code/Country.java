@@ -6,8 +6,10 @@
  */
 public class Country
 {
-    private String name;
-    private String capitalCityName;
+    private static final String ILLEGAL_NAME_MSG = "Name cannot be null or empty";
+
+    private String   name;
+    private String   capitalCityName;
     private String[] facts;
 
     /**
@@ -17,18 +19,20 @@ public class Country
      * @param capitalCityName capitalCityName
      * @param facts facts
      */
-    public Country(final String name, final String capitalCityName, final String[] facts)
+    public Country(final String name,
+                   final String capitalCityName,
+                   final String[] facts)
     {
         validateName(name);
         validateName(capitalCityName);
 
-        this.name = name;
+        this.name            = name;
         this.capitalCityName = capitalCityName;
-        this.facts = facts;
+        this.facts           = facts;
     }
 
     /**
-     * Accessor for name
+     * Getter for name
      *
      * @return name
      */
@@ -38,7 +42,7 @@ public class Country
     }
 
     /**
-     * Accessor for capitalCityName
+     * Getter for capitalCityName
      *
      * @return capitalCityName
      */
@@ -48,7 +52,7 @@ public class Country
     }
 
     /**
-     * Accessor for facts
+     * Getter for facts
      *
      * @return facts
      */
@@ -97,7 +101,7 @@ public class Country
     {
         if(name == null || name.isBlank())
         {
-            throw new IllegalArgumentException("Name cannot be null or empty");
+            throw new IllegalArgumentException(ILLEGAL_NAME_MSG);
         }
     }
 }
