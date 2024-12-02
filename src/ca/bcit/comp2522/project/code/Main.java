@@ -22,6 +22,16 @@ public class Main extends Application
     private static final String ILLEGAL_GAME_MSG = "Game cannot be null";
     private static final String DEFAULT_MSG      = "Invalid choice";
     private static final String QUIT_MSG         = "Quitting";
+    private static final char CHOICE_WORD_GAME              = 'W';
+    private static final char CHOICE_WORD_GAME_LOWER        = 'w';
+    private static final char CHOICE_NUMBER_GAME            = 'N';
+    private static final char CHOICE_NUMBER_GAME_LOWER      = 'n';
+    private static final char CHOICE_TIC_TAC_SWEEPER        = 'T';
+    private static final char CHOICE_TIC_TAC_SWEEPER_LOWER  = 't';
+    private static final char CHOICE_QUIT                   = 'Q';
+    private static final char CHOICE_QUIT_LOWER             = 'q';
+    private static final int  CHAR_INDEX     = 0;
+    private static final int  NUM_OF_THREADS = 1;
 
     /**
      * Main method
@@ -62,7 +72,7 @@ public class Main extends Application
 
         validateGame(game);
 
-        latch = new CountDownLatch(1);
+        latch = new CountDownLatch(NUM_OF_THREADS);
 
         Platform.runLater(() -> game.play(latch));
 
@@ -88,17 +98,17 @@ public class Main extends Application
 
         do
         {
-            System.out.println("Press W to play the Word game.");
-            System.out.println("Press N to play the Number game.");
-            System.out.println("Press T to play Tic-Tac-Sweeper.");
-            System.out.println("Press Q to quit.");
+            System.out.println("Press " + CHOICE_WORD_GAME + " to play the Word game.");
+            System.out.println("Press " + CHOICE_NUMBER_GAME + " to play the Number game.");
+            System.out.println("Press " + CHOICE_TIC_TAC_SWEEPER + " to play Ultimate Tic-Tac-Sweeper.");
+            System.out.println("Press " + CHOICE_QUIT + " to quit.");
 
-            choice = s.next().charAt(0);
+            choice = s.next().charAt(CHAR_INDEX);
 
             switch (choice)
             {
-                case 'w':
-                case 'W':
+                case CHOICE_WORD_GAME_LOWER:
+                case CHOICE_WORD_GAME:
                     final WordGame wordGame;
 
                     wordGame = new WordGame();
@@ -114,8 +124,8 @@ public class Main extends Application
 
                     break;
 
-                case 'n':
-                case 'N':
+                case CHOICE_NUMBER_GAME_LOWER:
+                case CHOICE_NUMBER_GAME:
                     final NumberGame numberGame;
 
                     numberGame = new NumberGame();
@@ -123,8 +133,8 @@ public class Main extends Application
                     launchGame(numberGame);
                     break;
 
-                case 't':
-                case 'T':
+                case CHOICE_TIC_TAC_SWEEPER_LOWER:
+                case CHOICE_TIC_TAC_SWEEPER:
                     final UltimateTicTacSweeper ultimateTicTacSweeper;
 
                     ultimateTicTacSweeper = new UltimateTicTacSweeper();
@@ -132,8 +142,8 @@ public class Main extends Application
                     launchGame(ultimateTicTacSweeper);
                     break;
 
-                case 'q':
-                case 'Q':
+                case CHOICE_QUIT_LOWER:
+                case CHOICE_QUIT:
                     System.out.println(QUIT_MSG);
                     Platform.exit();
                     break;
@@ -142,7 +152,7 @@ public class Main extends Application
                     System.out.println(DEFAULT_MSG);
             }
         }
-        while (choice != 'q' && choice != 'Q');
+        while (choice != CHOICE_QUIT_LOWER && choice != CHOICE_QUIT);
     }
 
     /*

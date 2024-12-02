@@ -44,18 +44,17 @@ public class WordGame
     private static final String TEXT_FILE_EXTENSION          = ".txt";
     private static final String COUNTRY_CAPITAL_SEPARATOR    = ":";
     private static final String COUNTRY_NAME_SEPARATOR       = ", ";
-    private static final String WORD_GAME_SUMMARY = """
-            %d word game played
-            %d correct answers on the first attempt
-            %d correct answers on the second attempt
-            %d incorrect answers on two attempts each""";
-
-    private static final String NEW_HIGH_SCORE_TXT =
-                            """
-                            CONGRATULATIONS!
-                            You are the new high score with an average of %.2f points per game;
-                            """;
-
+    private static final String DATE_SEPARATOR               = " ";
+    private static final String WORD_GAME_SUMMARY            = """
+                                                                 %d word game played
+                                                                 %d correct answers on the first attempt
+                                                                 %d correct answers on the second attempt
+                                                                 %d incorrect answers on two attempts each""";
+    private static final String NEW_HIGH_SCORE_TXT           =
+                                                               """
+                                                               CONGRATULATIONS!
+                                                               You are the new high score with an average of %.2f points per game;
+                                                               """;
     private static final List<Country> countries;
 
     private static int correctFirstAttempt;
@@ -88,11 +87,11 @@ public class WordGame
         final Score currentHighScore;
         String playAgain;
 
-        scan                = new Scanner(System.in);
-        random              = new Random();
-        countryNames        = new ArrayList<>();
-        countryMap          = new HashMap<>();
-        world               = new World(countryMap);
+        scan         = new Scanner(System.in);
+        random       = new Random();
+        countryNames = new ArrayList<>();
+        countryMap   = new HashMap<>();
+        world        = new World(countryMap);
 
         currentHighScore = Score.getHighestScore();
         readCountryFiles();
@@ -100,12 +99,12 @@ public class WordGame
         countries.forEach(c -> countryMap.put(c.getName(), c));
         world.getCountryMap().forEach((n, c) -> countryNames.add(n));
 
-
         do
         {
             playRound(countryNames, world, random, scan);
 
             System.out.println(PLAY_AGAIN_PROMPT);
+
             playAgain = scan.nextLine().trim();
 
             while(!playAgain.equalsIgnoreCase("Yes") && !playAgain.equalsIgnoreCase("No"))
@@ -127,18 +126,17 @@ public class WordGame
 
             if(currentHighScore != null)
             {
-                dateAndTime = Score.formattedDateTime(currentHighScore.getDateTimePlayed()).split(" ");
+                dateAndTime = Score.formattedDateTime(currentHighScore.getDateTimePlayed()).split(DATE_SEPARATOR);
 
                 System.out.printf(PREVIOUS_RECORD_INFO,
                         currentHighScore.getAverageScore(),
                         dateAndTime[FIRST],
                         dateAndTime[SECOND]);
             }
-
         }
         else if(currentHighScore != null)
         {
-            dateAndTime = Score.formattedDateTime(currentHighScore.getDateTimePlayed()).split(" ");
+            dateAndTime = Score.formattedDateTime(currentHighScore.getDateTimePlayed()).split(DATE_SEPARATOR);
 
             System.out.printf(NOT_HIGH_SCORE_TXT,
                     currentHighScore.getAverageScore(),
@@ -181,10 +179,10 @@ public class WordGame
             {
                 case FIRST:
 
-                    System.out.println("\n" + country.getCapitalCityName() +
-                            PROMPT_COUNTRY_QUESTION);
+                    System.out.println("\n" + country.getCapitalCityName() + PROMPT_COUNTRY_QUESTION);
 
                     input = scan.nextLine();
+
                     answer = country.getName().replaceAll(ANSWER_REGEX, REGEX_REPLACEMENT_STR);
 
                     guessQuestion(scan, answer, input);
@@ -193,10 +191,10 @@ public class WordGame
 
                 case SECOND:
 
-                    System.out.println("\n" + country.getName() +
-                            PROMPT_CAPITAL_QUESTION);
+                    System.out.println("\n" + country.getName() + PROMPT_CAPITAL_QUESTION);
 
                     input = scan.nextLine();
+
                     answer = country.getCapitalCityName().replaceAll(ANSWER_REGEX, REGEX_REPLACEMENT_STR);
 
                     guessQuestion(scan, answer, input);
@@ -205,10 +203,10 @@ public class WordGame
 
                 case THIRD:
 
-                    System.out.println("\n" + chosenFact +
-                            PROMPT_COUNTRY_FACT_QUESTION);
+                    System.out.println("\n" + chosenFact + PROMPT_COUNTRY_FACT_QUESTION);
 
                     input = scan.nextLine();
+
                     answer = country.getName().replaceAll(ANSWER_REGEX, REGEX_REPLACEMENT_STR);
 
                     guessQuestion(scan, answer, input);
@@ -221,11 +219,8 @@ public class WordGame
         }
 
         gamesPlayed++;
+
         System.out.printf(WORD_GAME_SUMMARY, gamesPlayed, correctFirstAttempt, correctSecondAttempt, incorrect);
-//        System.out.println("\n" + gamesPlayed + " word game played");
-//        System.out.println(correctFirstAttempt + " correct answers on the first attempt");
-//        System.out.println(correctSecondAttempt + " correct answers on the second attempt");
-//        System.out.println(incorrect + " incorrect answers on two attempts each");
     }
 
     /*
